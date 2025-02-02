@@ -18,7 +18,7 @@ public class SizeHelperCommandinator {
 	private final HashMap<String, ScaleSettings> allScaleSettings = new HashMap<>();
 
 	// Runs every frame as registered by SizeHelperForPehkui.
-	public void runSizeScalingCommands(MinecraftServer server) {
+	public void runSizeScalingCommands(MinecraftServer server, boolean disableUnused) {
 		server.execute(() -> {
 			ServerCommandSource source = server.getCommandSource();
 			CommandManager commandManager = server.getCommandManager();
@@ -26,7 +26,7 @@ public class SizeHelperCommandinator {
 			for (String playerName : playerNames) {
 				if (allScaleSettings.containsKey(playerName)) {
 					ScaleSettings settings = allScaleSettings.get(playerName);
-					ArrayList<String> commands = settings.calculateScaleCommands();
+					ArrayList<String> commands = settings.calculateScaleCommands(disableUnused);
 					for (String command : commands) {
 						commandManager.executeWithPrefix(source, command);
 					}
@@ -37,7 +37,7 @@ public class SizeHelperCommandinator {
 
 	// Runs whenever the "/size_helper delete player_name" command is run.
 	public int deletePlayerSizeScaling(CommandContext<ServerCommandSource> context) {
-		String playerName = StringArgumentType.getString(context, "player_name");
+		final String playerName = StringArgumentType.getString(context, "player_name");
 		if (allScaleSettings.containsKey(playerName)) {
 			allScaleSettings.remove(playerName);
 			configFile.deleteSection(playerName);
@@ -46,15 +46,15 @@ public class SizeHelperCommandinator {
 			context.getSource().sendFeedback(() -> Text.literal("No size scaling config found for " + playerName + "."), false);
 		}
 		saveToConfigFile(false);
-		runSizeScalingCommands(context.getSource().getServer());
+		runSizeScalingCommands(context.getSource().getServer(), true);
 		return 1;
 	}
 
-	// Runs whenever the "/size_helper delete player_name size_setting size_value" command is run.
-	public int setPlayerSizeScaling(CommandContext<ServerCommandSource> context) {
-		String playerName = StringArgumentType.getString(context, "player_name");
-		String sizeSetting = StringArgumentType.getString(context, "size_setting");
-		double sizeValue = DoubleArgumentType.getDouble(context, "size_value");
+	// Runs whenever the "/size_helper enum player_name enum_setting enum_value" command is run.
+	public int setPlayerEnumString(CommandContext<ServerCommandSource> context) {
+		final String playerName = StringArgumentType.getString(context, "player_name");
+		final String enumSetting = StringArgumentType.getString(context, "enum_setting");
+		final String enumValue = StringArgumentType.getString(context, "enum_value");
 		ScaleSettings scaleSettings;
 		if (allScaleSettings.containsKey(playerName)) {
 			scaleSettings = allScaleSettings.get(playerName);
@@ -62,10 +62,32 @@ public class SizeHelperCommandinator {
 			scaleSettings = new ScaleSettings(playerName);
 			allScaleSettings.put(playerName, scaleSettings);
 		}
-		scaleSettings.setScaleSetting(sizeSetting, sizeValue);
+		scaleSettings.setEnumSetting(enumSetting, enumValue);
 		configFile.setSectionData(playerName, scaleSettings.toHashMap());
 		saveToConfigFile(false);
-		runSizeScalingCommands(context.getSource().getServer());
+		runSizeScalingCommands(context.getSource().getServer(), true);
+		return 1;
+	}
+
+	// Runs whenever the "/size_helper size player_name size_setting size_value" command is run.
+	public int setPlayerSizeScaling(CommandContext<ServerCommandSource> context) {
+		final String playerName = StringArgumentType.getString(context, "player_name");
+		final String sizeSetting = StringArgumentType.getString(context, "size_setting");
+		final double sizeValue = DoubleArgumentType.getDouble(context, "size_value");
+		ScaleSettings scaleSettings;
+		if (allScaleSettings.containsKey(playerName)) {
+			scaleSettings = allScaleSettings.get(playerName);
+		} else {
+			scaleSettings = new ScaleSettings(playerName);
+			allScaleSettings.put(playerName, scaleSettings);
+		}
+		final String ret = scaleSettings.setScaleSetting(sizeSetting, sizeValue);
+		if (!ret.isEmpty()) {
+			context.getSource().sendFeedback(() -> Text.literal(ret), false);
+		}
+		configFile.setSectionData(playerName, scaleSettings.toHashMap());
+		saveToConfigFile(false);
+		runSizeScalingCommands(context.getSource().getServer(), true);
 		return 1;
 	}
 

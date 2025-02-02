@@ -1,4 +1,4 @@
-package dev.aaronfranke.size_helper_for_pehkui;
+package dev.aaronfranke.size_helper_for_pehkui.suggestion_providers;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;

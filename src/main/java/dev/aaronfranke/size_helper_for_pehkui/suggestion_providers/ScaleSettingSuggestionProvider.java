@@ -1,7 +1,6 @@
-package dev.aaronfranke.size_helper_for_pehkui;
+package dev.aaronfranke.size_helper_for_pehkui.suggestion_providers;
 
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -25,7 +24,7 @@ public class ScaleSettingSuggestionProvider implements SuggestionProvider<Server
 	};
 
 	@Override
-	public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+	public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
 		for (String scaleSettingName : scaleSettingExposedNames) {
 			builder.suggest(scaleSettingName);
 		}

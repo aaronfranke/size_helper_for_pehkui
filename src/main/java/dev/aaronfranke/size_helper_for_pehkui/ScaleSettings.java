@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 public class ScaleSettings {
 	public String playerName;
+	private static final double JUMP_STEP_ADJUST = 1.05;
 	// Most of the time, only height needs to be set, and the rest are calculated.
 	// The other values provide another multiplier on top of the calculated value.
 	// All numbers that don't say "meters" are multipliers compared to the default.
@@ -35,15 +36,17 @@ public class ScaleSettings {
 		return Math.round(health / 10.0) * 10.0;
 	}
 
-	public ArrayList<String> calculateScaleCommands() {
+	public ArrayList<String> calculateScaleCommands(boolean disableUnused) {
 		final ArrayList<String> commands = new ArrayList<>();
 		// 1.875 is the default Minecraft player height, turn it into a multiplier.
 		final double bakedHeight = bakedHeightMeters / 1.875;
 		final double height = heightMeters / 1.875;
 		final double sqrtHeight = Math.sqrt(height);
 		final double sqrtSqrtHeight = Math.sqrt(sqrtHeight);
+		final double sqrtSqrtSqrtHeight = Math.sqrt(sqrtSqrtHeight);
 		final double invSqrtHeight = 1.0 / sqrtHeight;
 		final double invSqrtSqrtHeight = 1.0 / sqrtSqrtHeight;
+		final double invSqrtSqrtSqrtHeight = 1.0 / sqrtSqrtSqrtHeight;
 		commands.add("scale set pehkui:height " + (height / bakedHeight) + " " + playerName);
 		commands.add("scale set pehkui:width " + (height / bakedHeight) + " " + playerName);
 		commands.add("scale set pehkui:knockback " + (height) + " " + playerName);
@@ -55,32 +58,42 @@ public class ScaleSettings {
 		// Bigger characters have lower defense to allow their health to be drained faster,
 		// which in turn makes them eat more food. The inverse is true for smaller characters.
 		commands.add("scale set pehkui:defense " + (invSqrtHeight * strength / fatness) + " " + playerName);
-		commands.add("scale set pehkui:health " + stepifyHealth(height * sqrtHeight * fatness) + " " + playerName);
-		// For jump and step height, for small players we need to compensate for their small size,
-		// for big players we need to compensate for their reduced motion relative to their size.
 		if (height < 1.0) {
-			commands.add("scale set pehkui:jump_height " + (invSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (invSqrtSqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:health " + stepifyHealth(sqrtHeight * fatness) + " " + playerName);
 		} else {
-			commands.add("scale set pehkui:jump_height " + (sqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (sqrtSqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:health " + stepifyHealth(height * sqrtHeight * fatness) + " " + playerName);
+		}
+		// For jump and step height, for small players we need to compensate for their small size.
+		if (height < 0.25) {
+			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * invSqrtSqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * invSqrtSqrtHeight) + " " + playerName);
+		} else if (height < 1.0) {
+			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * invSqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * invSqrtHeight) + " " + playerName);
+		} else {
+			// For big players we need to compensate for their reduced motion relative to their size.
+			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * sqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * sqrtSqrtHeight) + " " + playerName);
 		}
 		// These values need special handling at small sizes.
-		if (height < 0.25) {
-			commands.add("scale set pehkui:view_bobbing 0.0 " + playerName);
-			commands.add("scale set pehkui:reach 0.5 " + playerName);
-		} else {
-			commands.add("scale set pehkui:view_bobbing " + (sqrtHeight) + " " + playerName);
-			if (height > 4.0) {
-				commands.add("scale set pehkui:reach " + (height * 0.5) + " " + playerName);
-			} else {
-				commands.add("scale set pehkui:reach " + (sqrtHeight) + " " + playerName);
-			}
-		}
 		if (height < 1.0) {
 			commands.add("scale set pehkui:falling " + (height * height * Math.sqrt(fatness) / jumping) + " " + playerName);
 		} else {
 			commands.add("scale set pehkui:falling " + (Math.sqrt(fatness) / jumping) + " " + playerName);
+		}
+		if (height < 0.25) {
+			commands.add("scale set pehkui:reach 0.5 " + playerName);
+		} else if (height > 4.0) {
+			commands.add("scale set pehkui:reach " + (height * 0.5) + " " + playerName);
+		} else {
+			commands.add("scale set pehkui:reach " + (sqrtHeight) + " " + playerName);
+		}
+		if (height < 0.25) {
+			commands.add("scale set pehkui:view_bobbing 0.0 " + playerName);
+		} else if (height < 2.25) {
+			commands.add("scale set pehkui:view_bobbing " + (sqrtHeight) + " " + playerName);
+		} else {
+			commands.add("scale set pehkui:view_bobbing 1.5 " + playerName);
 		}
 		// Special handling, not auto-calculated.
 		commands.add("scale set pehkui:eye_height " + (eyeHeight * bakedHeight) + " " + playerName);
@@ -89,28 +102,58 @@ public class ScaleSettings {
 		commands.add("scale set pehkui:third_person " + (thirdPersonDistance * bakedHeight) + " " + playerName);
 		// Not pehkui.
 		if (height > 1.0) {
-			final double knockbackRes = 1.0 - 1.0 / (height * strength);
+			final double knockbackRes = 1.0 - 1.0 / (height * strength * fatness);
 			commands.add("attribute " + playerName + " minecraft:generic.knockback_resistance base set " + knockbackRes);
-		} else {
+		} else if (disableUnused) {
 			commands.add("attribute " + playerName + " minecraft:generic.knockback_resistance base set 0.0");
 		}
-		if (flight.equals("creative")) {
-			// Requires the "fly" command from the mod "fly-command-mod".
-			commands.add("fly " + playerName + " allow");
-		} else if (flight.equals("elytra")) {
-			// Requires the "glide" command from the mod "MotHutils".
-			commands.add("glide add " + playerName);
-		} else if (!flight.equals("none")) {
-			SizeHelperForPehkui.LOGGER.warn("Unknown flight type: " + flight + ". Allowed values are 'none', 'creative', and 'elytra'.");
+		switch (flight) {
+			case "none":
+				if (disableUnused) {
+					commands.add("fly " + playerName + " noAllow");
+					commands.add("glide remove " + playerName);
+				}
+				break;
+			case "creative":
+				// Requires the "fly" command from the mod "fly-command-mod".
+				commands.add("fly " + playerName + " allow");
+				break;
+			case "elytra":
+				// Requires the "glide" command from the mod "MotHutils".
+				commands.add("glide add " + playerName);
+				break;
+			default:
+				SizeHelperForPehkui.LOGGER.warn("Unknown flight type: {}. Allowed values are 'none', 'creative', and 'elytra'.", flight);
 		}
 		return commands;
 	}
 
-	public void setScaleSetting(String setting, double value) {
+	public void setEnumSetting(String setting, String value) {
+		switch (setting) {
+			case "flight":
+				if (value.equals("none") || value.equals("creative") || value.equals("elytra")) {
+					flight = value;
+				} else {
+					SizeHelperForPehkui.LOGGER.warn("Unknown flight type: {}. Allowed values are 'none', 'creative', and 'elytra'.", value);
+				}
+				break;
+			default:
+				SizeHelperForPehkui.LOGGER.warn("Unknown enum setting: {}", setting);
+		}
+	}
+
+	public String setScaleSetting(String setting, double value) {
 		// Keep these cases in sync with the array at ScaleSettingSuggestionProvider.scaleSettingExposedNames.
 		switch (setting) {
 			case "height_meters":
+				if (value < 0.002) {
+					heightMeters = 0.002;
+					return "The provided value of " + value + " is too small for Pehkui. Clipping to 0.002 (2 millimeters).";
+				}
 				heightMeters = value;
+				if (heightMeters < 0.075) {
+					return "Warning: Below 0.075 meters tall (7.5cm), path blocks will cover the camera.";
+				}
 				break;
 			case "baked_height_meters":
 				bakedHeightMeters = value;
@@ -142,6 +185,7 @@ public class ScaleSettings {
 			default:
 				SizeHelperForPehkui.LOGGER.warn("Unknown scale setting: " + setting);
 		}
+		return "";
 	}
 
 	// Serialization functions.

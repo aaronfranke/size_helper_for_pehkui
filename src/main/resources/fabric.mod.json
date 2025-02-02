@@ -3,9 +3,9 @@
 	"id": "size_helper_for_pehkui",
 	"version": "${version}",
 	"name": "Size Helper for Pehkui",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Automatically calculate scale factors for realistic size scaling and apply them by running commands.",
 	"authors": [
-		"Me!"
+		"aaronfranke"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -13,7 +13,7 @@
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/size_helper_for_pehkui/icon.png",
-	"environment": "server",
+	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"dev.aaronfranke.size_helper_for_pehkui.SizeHelperForPehkui"

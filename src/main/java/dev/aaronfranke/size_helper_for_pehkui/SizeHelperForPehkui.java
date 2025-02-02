@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import dev.aaronfranke.size_helper_for_pehkui.suggestion_providers.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -57,7 +58,24 @@ public class SizeHelperForPehkui implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(CommandManager.literal("size_helper")
 				.requires(source -> source.hasPermissionLevel(1))
-				.then(CommandManager.literal("set")
+				.then(CommandManager.literal("enum")
+					.then(CommandManager.argument("player_name", StringArgumentType.string())
+						.suggests(new PlayerSuggestionProvider())
+						.then(CommandManager.argument("enum_setting", StringArgumentType.string())
+							.suggests(new EnumSettingSuggestionProvider())
+							.then(CommandManager.argument("enum_value", StringArgumentType.string())
+								.suggests(new EnumValueSuggestionProvider())
+								.executes(commandinator::setPlayerEnumString)
+							)
+						)
+					)
+				)
+			);
+		});
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(CommandManager.literal("size_helper")
+				.requires(source -> source.hasPermissionLevel(1))
+				.then(CommandManager.literal("size")
 					.then(CommandManager.argument("player_name", StringArgumentType.string())
 						.suggests(new PlayerSuggestionProvider())
 						.then(CommandManager.argument("size_setting", StringArgumentType.string())
@@ -85,7 +103,7 @@ public class SizeHelperForPehkui implements ModInitializer {
 			runCommandIntervalCounter++;
 			if (runCommandIntervalCounter > RUN_COMMAND_INTERVAL_TICKS) {
 				runCommandIntervalCounter = 0;
-				commandinator.runSizeScalingCommands(server);
+				commandinator.runSizeScalingCommands(server, false);
 			}
 		});
 		LOGGER.info("Loaded Size Helper for Pehkui by aaronfranke!");
