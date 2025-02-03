@@ -12,6 +12,10 @@ public class ScaleSettingSuggestionProvider implements SuggestionProvider<Server
 	// Keep this in sync with the cases in ScaleSettings.setScaleSetting.
 	private static final String[] scaleSettingExposedNames = {
 		"height_meters",
+		"height_multiplier",
+		"height_feet",
+		"height_inches",
+		"height_centimeters",
 		"baked_height_meters",
 		"fatness",
 		"jumping",

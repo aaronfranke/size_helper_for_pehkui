@@ -52,20 +52,20 @@ public class ConfigFile {
 
 	public double getDouble(String section, String key, double defaultValue) {
 		Object value = getValue(section, key, defaultValue);
-		if (value instanceof Double) {
-			return ((Double)value).doubleValue();
-		} else if (value instanceof Integer) {
-			return ((Integer)value).doubleValue();
+		if (value instanceof Double valueDouble) {
+			return valueDouble.doubleValue();
+		} else if (value instanceof Integer valueInteger) {
+			return valueInteger.doubleValue();
 		}
 		return defaultValue;
 	}
 
 	public int getInt(String section, String key, int defaultValue) {
 		Object value = getValue(section, key, defaultValue);
-		if (value instanceof Integer) {
-			return ((Integer) value).intValue();
-		} else if (value instanceof Double) {
-			return ((Double) value).intValue();
+		if (value instanceof Integer valueInteger) {
+			return valueInteger.intValue();
+		} else if (value instanceof Double valueDouble) {
+			return valueDouble.intValue();
 		}
 		return defaultValue;
 	}

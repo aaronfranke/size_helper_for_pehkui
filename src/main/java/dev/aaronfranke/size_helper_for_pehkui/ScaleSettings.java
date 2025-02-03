@@ -155,6 +155,18 @@ public class ScaleSettings {
 					return "Warning: Below 0.075 meters tall (7.5cm), path blocks will cover the camera.";
 				}
 				break;
+			case "height_multiplier":
+				setScaleSetting("height_meters", value * 1.875);
+				break;
+			case "height_feet":
+				setScaleSetting("height_meters", value * 0.3048);
+				break;
+			case "height_inches":
+				setScaleSetting("height_meters", value * 0.0254);
+				break;
+			case "height_centimeters":
+				setScaleSetting("height_meters", value * 0.01);
+				break;
 			case "baked_height_meters":
 				bakedHeightMeters = value;
 				break;
