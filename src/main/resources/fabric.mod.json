@@ -8,8 +8,8 @@
 		"aaronfranke"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/aaronfranke/size_helper_for_pehkui",
+		"sources": "https://github.com/aaronfranke/size_helper_for_pehkui"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/size_helper_for_pehkui/icon.png",
