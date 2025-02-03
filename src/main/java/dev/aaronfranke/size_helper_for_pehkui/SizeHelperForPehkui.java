@@ -29,8 +29,8 @@ public class SizeHelperForPehkui implements ModInitializer {
 	public static Path MOD_CONFIG_PATH;
 	private ConfigFile configFile;
 	private SizeHelperCommandinator commandinator;
-	// 20 seconds per tick, so 100 ticks is 5 seconds.
-	private int RUN_COMMAND_INTERVAL_TICKS = 100;
+	// 20 seconds per tick, so 40 ticks is 2 seconds.
+	private int RUN_COMMAND_INTERVAL_TICKS = 40;
 	private int runCommandIntervalCounter = 0;
 
 	// This code runs as soon as Minecraft is in a mod-load-ready state.

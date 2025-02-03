@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class ScaleSettings {
 	public String playerName;
-	private static final double JUMP_STEP_ADJUST = 1.05;
+	private static final double MOTION_ADJUST = 1.1;
 	// Most of the time, only height needs to be set, and the rest are calculated.
 	// The other values provide another multiplier on top of the calculated value.
 	// All numbers that don't say "meters" are multipliers compared to the default.
@@ -52,7 +52,7 @@ public class ScaleSettings {
 		commands.add("scale set pehkui:knockback " + (height) + " " + playerName);
 		commands.add("scale set pehkui:visibility " + (height) + " " + playerName);
 		commands.add("scale set pehkui:attack " + (sqrtHeight * strength) + " " + playerName);
-		commands.add("scale set pehkui:motion " + (sqrtHeight * motion / Math.sqrt(fatness)) + " " + playerName);
+		commands.add("scale set pehkui:motion " + (MOTION_ADJUST * sqrtHeight * motion / Math.sqrt(fatness)) + " " + playerName);
 		commands.add("scale set pehkui:mining_speed " + (sqrtSqrtHeight) + " " + playerName);
 		commands.add("scale set pehkui:attack_speed " + (invSqrtHeight) + " " + playerName);
 		// Bigger characters have lower defense to allow their health to be drained faster,
@@ -65,15 +65,15 @@ public class ScaleSettings {
 		}
 		// For jump and step height, for small players we need to compensate for their small size.
 		if (height < 0.25) {
-			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * invSqrtSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * invSqrtSqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:jump_height " + (invSqrtSqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (invSqrtSqrtHeight) + " " + playerName);
 		} else if (height < 1.0) {
-			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * invSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * invSqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:jump_height " + (invSqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (invSqrtHeight) + " " + playerName);
 		} else {
 			// For big players we need to compensate for their reduced motion relative to their size.
-			commands.add("scale set pehkui:jump_height " + (JUMP_STEP_ADJUST * sqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (JUMP_STEP_ADJUST * sqrtSqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:jump_height " + (sqrtSqrtSqrtHeight * jumping) + " " + playerName);
+			commands.add("scale set pehkui:step_height " + (sqrtSqrtHeight) + " " + playerName);
 		}
 		// These values need special handling at small sizes.
 		if (height < 1.0) {
@@ -81,19 +81,19 @@ public class ScaleSettings {
 		} else {
 			commands.add("scale set pehkui:falling " + (Math.sqrt(fatness) / jumping) + " " + playerName);
 		}
-		if (height < 0.25) {
+		if (height < 0.39685) {
 			commands.add("scale set pehkui:reach 0.5 " + playerName);
-		} else if (height > 4.0) {
-			commands.add("scale set pehkui:reach " + (height * 0.5) + " " + playerName);
+		} else if (height > 3.16049) {
+			commands.add("scale set pehkui:reach " + (height * 0.75) + " " + playerName);
 		} else {
-			commands.add("scale set pehkui:reach " + (sqrtHeight) + " " + playerName);
+			commands.add("scale set pehkui:reach " + (sqrtHeight * sqrtSqrtHeight) + " " + playerName);
 		}
 		if (height < 0.25) {
 			commands.add("scale set pehkui:view_bobbing 0.0 " + playerName);
-		} else if (height < 2.25) {
+		} else if (height < 2.0) {
 			commands.add("scale set pehkui:view_bobbing " + (sqrtHeight) + " " + playerName);
 		} else {
-			commands.add("scale set pehkui:view_bobbing 1.5 " + playerName);
+			commands.add("scale set pehkui:view_bobbing 1.41421356237 " + playerName);
 		}
 		// Special handling, not auto-calculated.
 		commands.add("scale set pehkui:eye_height " + (eyeHeight * bakedHeight) + " " + playerName);
