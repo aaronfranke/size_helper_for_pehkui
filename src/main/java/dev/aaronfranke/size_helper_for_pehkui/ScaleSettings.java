@@ -1,10 +1,13 @@
 package dev.aaronfranke.size_helper_for_pehkui;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 public class ScaleSettings {
 	public String playerName;
+	private static final DecimalFormat STRINGIFY = new DecimalFormat("0.######");
 	private static final double MOTION_ADJUST = 1.1;
 	// Most of the time, only height needs to be set, and the rest are calculated.
 	// The other values provide another multiplier on top of the calculated value.
@@ -25,6 +28,7 @@ public class ScaleSettings {
 	private double motion = 1.0;
 	private double thirdPersonDistance = 0.75;
 
+	// Internal calculations.
 	private double stepifyHealth(double health) {
 		if (health < 0.2) {
 			return 0.2;
@@ -36,8 +40,8 @@ public class ScaleSettings {
 		return Math.round(health / 10.0) * 10.0;
 	}
 
-	public ArrayList<String> calculateScaleCommands(boolean disableUnused) {
-		final ArrayList<String> commands = new ArrayList<>();
+	private HashMap<String, Double> calculatePehkuiScaleFactors() {
+		final HashMap<String, Double> factors = new HashMap<>();
 		// 1.875 is the default Minecraft player height, turn it into a multiplier.
 		final double bakedHeight = bakedHeightMeters / 1.875;
 		final double height = heightMeters / 1.875;
@@ -47,60 +51,68 @@ public class ScaleSettings {
 		final double invSqrtHeight = 1.0 / sqrtHeight;
 		final double invSqrtSqrtHeight = 1.0 / sqrtSqrtHeight;
 		final double invSqrtSqrtSqrtHeight = 1.0 / sqrtSqrtSqrtHeight;
-		commands.add("scale set pehkui:height " + (height / bakedHeight) + " " + playerName);
-		commands.add("scale set pehkui:width " + (height / bakedHeight) + " " + playerName);
-		commands.add("scale set pehkui:knockback " + (height) + " " + playerName);
-		commands.add("scale set pehkui:visibility " + (height) + " " + playerName);
-		commands.add("scale set pehkui:attack " + (sqrtHeight * strength) + " " + playerName);
-		commands.add("scale set pehkui:motion " + (MOTION_ADJUST * sqrtHeight * motion / Math.sqrt(fatness)) + " " + playerName);
-		commands.add("scale set pehkui:mining_speed " + (sqrtSqrtHeight) + " " + playerName);
-		commands.add("scale set pehkui:attack_speed " + (invSqrtHeight) + " " + playerName);
-		// Bigger characters have lower defense to allow their health to be drained faster,
-		// which in turn makes them eat more food. The inverse is true for smaller characters.
-		commands.add("scale set pehkui:defense " + (invSqrtHeight * strength / fatness) + " " + playerName);
+		factors.put("height", height / bakedHeight);
+		factors.put("width", height / bakedHeight);
+		factors.put("knockback", height);
+		factors.put("visibility", height);
+		factors.put("attack", sqrtHeight * strength);
+		factors.put("motion", MOTION_ADJUST * sqrtHeight * motion / Math.sqrt(fatness));
+		factors.put("mining_speed", sqrtSqrtHeight);
+		factors.put("attack_speed", invSqrtHeight);
 		if (height < 1.0) {
-			commands.add("scale set pehkui:health " + stepifyHealth(sqrtHeight * fatness) + " " + playerName);
-		} else {
-			commands.add("scale set pehkui:health " + stepifyHealth(height * sqrtHeight * fatness) + " " + playerName);
-		}
-		// For jump and step height, for small players we need to compensate for their small size.
-		if (height < 0.25) {
-			commands.add("scale set pehkui:jump_height " + (invSqrtSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (invSqrtSqrtHeight) + " " + playerName);
-		} else if (height < 1.0) {
-			commands.add("scale set pehkui:jump_height " + (invSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (invSqrtHeight) + " " + playerName);
+			// For jump and step height, for small players we need to compensate for their small size.
+			factors.put("falling", height * height * Math.sqrt(fatness) / jumping);
+			factors.put("health", stepifyHealth(sqrtHeight * fatness));
+			factors.put("jump_height", invSqrtSqrtHeight * jumping);
+			if (height < 0.25) {
+				factors.put("step_height", invSqrtSqrtHeight);
+			} else {
+				factors.put("step_height", invSqrtHeight);
+			}
 		} else {
 			// For big players we need to compensate for their reduced motion relative to their size.
-			commands.add("scale set pehkui:jump_height " + (sqrtSqrtSqrtHeight * jumping) + " " + playerName);
-			commands.add("scale set pehkui:step_height " + (sqrtSqrtHeight) + " " + playerName);
+			factors.put("falling", Math.sqrt(fatness) / jumping);
+			factors.put("health", stepifyHealth(height * sqrtHeight * fatness));
+			factors.put("jump_height", sqrtSqrtSqrtHeight * jumping);
+			factors.put("step_height", sqrtSqrtHeight);
 		}
+		// Bigger characters have lower defense to allow their health to be drained faster,
+		// which in turn makes them eat more food. The inverse is true for smaller characters.
+		factors.put("defense", invSqrtHeight * strength / fatness);
 		// These values need special handling at small sizes.
-		if (height < 1.0) {
-			commands.add("scale set pehkui:falling " + (height * height * Math.sqrt(fatness) / jumping) + " " + playerName);
+		if (height > 3.16049) {
+			factors.put("reach", height * 0.75);
+		} else if (height > 1.0) {
+			factors.put("reach", sqrtHeight * sqrtSqrtHeight);
+		} else if (height > 0.0625) {
+			factors.put("reach", sqrtSqrtHeight);
 		} else {
-			commands.add("scale set pehkui:falling " + (Math.sqrt(fatness) / jumping) + " " + playerName);
-		}
-		if (height < 0.39685) {
-			commands.add("scale set pehkui:reach 0.5 " + playerName);
-		} else if (height > 3.16049) {
-			commands.add("scale set pehkui:reach " + (height * 0.75) + " " + playerName);
-		} else {
-			commands.add("scale set pehkui:reach " + (sqrtHeight * sqrtSqrtHeight) + " " + playerName);
+			factors.put("reach", 0.5);
 		}
 		if (height < 0.25) {
-			commands.add("scale set pehkui:view_bobbing 0.0 " + playerName);
+			factors.put("view_bobbing", 0.0);
 		} else if (height < 2.0) {
-			commands.add("scale set pehkui:view_bobbing " + (sqrtHeight) + " " + playerName);
+			factors.put("view_bobbing", sqrtHeight);
 		} else {
-			commands.add("scale set pehkui:view_bobbing 1.41421356237 " + playerName);
+			factors.put("view_bobbing", 1.41421356237);
 		}
 		// Special handling, not auto-calculated.
-		commands.add("scale set pehkui:eye_height " + (eyeHeight * bakedHeight) + " " + playerName);
-		commands.add("scale set pehkui:hitbox_height " + (hitboxHeight * bakedHeight) + " " + playerName);
-		commands.add("scale set pehkui:hitbox_width " + (hitboxWidth * bakedHeight * Math.sqrt(fatness)) + " " + playerName);
-		commands.add("scale set pehkui:third_person " + (thirdPersonDistance * bakedHeight) + " " + playerName);
+		factors.put("eye_height", eyeHeight * bakedHeight);
+		factors.put("hitbox_height", hitboxHeight * bakedHeight);
+		factors.put("hitbox_width", hitboxWidth * bakedHeight * Math.sqrt(fatness));
+		factors.put("third_person", thirdPersonDistance * bakedHeight);
+		return factors;
+	}
+
+	public ArrayList<String> calculateScaleCommands(boolean disableUnused) {
+		final ArrayList<String> commands = new ArrayList<>();
+		// Pehkui.
+		final HashMap<String, Double> factors = calculatePehkuiScaleFactors();
+		for (String factor : factors.keySet()) {
+			commands.add("scale set pehkui:" + factor + " " + STRINGIFY.format(factors.get(factor)) + " " + playerName);
+		}
 		// Not pehkui.
+		final double height = heightMeters / 1.875;
 		if (height > 1.0) {
 			final double knockbackRes = 1.0 - 1.0 / (height * strength * fatness);
 			commands.add("attribute " + playerName + " minecraft:generic.knockback_resistance base set " + knockbackRes);
@@ -128,6 +140,24 @@ public class ScaleSettings {
 		return commands;
 	}
 
+	public String stringifyCalculatedScaleFactors() {
+		final StringBuilder sb = new StringBuilder();
+		// Include the high-level sizes the user specifies.
+		sb.append("\n").append(playerName).append(": ");
+		final HashMap<String, Object> serialized = toHashMap();
+		for (String key : serialized.keySet()) {
+			sb.append(key).append("=").append(serialized.get(key)).append(", ");
+		}
+		// Also include the calculated scale factors.
+		sb.append("\nCalculated Pehkui values: ");
+		final HashMap<String, Double> factors = calculatePehkuiScaleFactors();
+		final TreeSet<String> sortedFactorNames = new TreeSet<>(factors.keySet());
+		for (String factor : sortedFactorNames) {
+			sb.append(factor).append("=").append(STRINGIFY.format(factors.get(factor))).append(", ");
+		}
+		return sb.toString();
+	}
+
 	public void setEnumSetting(String setting, String value) {
 		switch (setting) {
 			case "flight":
@@ -148,7 +178,7 @@ public class ScaleSettings {
 			case "height_meters":
 				if (value < 0.002) {
 					heightMeters = 0.002;
-					return "The provided value of " + value + " is too small for Pehkui. Clipping to 0.002 (2 millimeters).";
+					return "The provided value of " + value + " meters is too small for Pehkui. Clipping to 0.002 (2 millimeters).";
 				}
 				heightMeters = value;
 				if (heightMeters < 0.075) {
@@ -156,17 +186,13 @@ public class ScaleSettings {
 				}
 				break;
 			case "height_multiplier":
-				setScaleSetting("height_meters", value * 1.875);
-				break;
+				return setScaleSetting("height_meters", value * 1.875);
 			case "height_feet":
-				setScaleSetting("height_meters", value * 0.3048);
-				break;
+				return setScaleSetting("height_meters", value * 0.3048);
 			case "height_inches":
-				setScaleSetting("height_meters", value * 0.0254);
-				break;
+				return setScaleSetting("height_meters", value * 0.0254);
 			case "height_centimeters":
-				setScaleSetting("height_meters", value * 0.01);
-				break;
+				return setScaleSetting("height_meters", value * 0.01);
 			case "baked_height_meters":
 				bakedHeightMeters = value;
 				break;

@@ -91,6 +91,17 @@ public class SizeHelperCommandinator {
 		return 1;
 	}
 
+	public int viewCalculatedPlayerScaling(CommandContext<ServerCommandSource> context) {
+		final String playerName = StringArgumentType.getString(context, "player_name");
+		if (allScaleSettings.containsKey(playerName)) {
+			ScaleSettings settings = allScaleSettings.get(playerName);
+			context.getSource().sendFeedback(() -> Text.literal(settings.stringifyCalculatedScaleFactors()), false);
+		} else {
+			context.getSource().sendFeedback(() -> Text.literal("Size helper is not scaling " + playerName + "."), false);
+		}
+		return 1;
+	}
+
 	// Loading and saving functions.
 	public static SizeHelperCommandinator loadFromConfigFile(ConfigFile configFile) {
 		SizeHelperCommandinator commandinator = new SizeHelperCommandinator();

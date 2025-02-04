@@ -98,6 +98,17 @@ public class SizeHelperForPehkui implements ModInitializer {
 				)
 			);
 		});
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(CommandManager.literal("size_helper")
+				.requires(source -> source.hasPermissionLevel(1))
+				.then(CommandManager.literal("view")
+					.then(CommandManager.argument("player_name", StringArgumentType.string())
+						.suggests(new PlayerSuggestionProvider())
+						.executes(commandinator::viewCalculatedPlayerScaling)
+					)
+				)
+			);
+		});
 		// Register a callback that re-runs all scale commands every tick.
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			runCommandIntervalCounter++;
