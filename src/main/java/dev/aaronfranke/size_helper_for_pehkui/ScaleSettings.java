@@ -84,10 +84,10 @@ public class ScaleSettings {
 			factors.put("reach", height * 0.75);
 		} else if (height > 1.0) {
 			factors.put("reach", sqrtHeight * sqrtSqrtHeight);
-		} else if (height > 0.0625) {
-			factors.put("reach", sqrtSqrtHeight);
 		} else {
-			factors.put("reach", 0.5);
+			// Realistically the reach should reduce at smaller sizes.
+			// However, people keep getting annoyed by poor gameplay.
+			factors.put("reach", 1.0);
 		}
 		if (height < 0.25) {
 			factors.put("view_bobbing", 0.0);
