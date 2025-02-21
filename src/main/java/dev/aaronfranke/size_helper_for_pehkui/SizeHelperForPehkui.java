@@ -8,6 +8,8 @@ import dev.aaronfranke.size_helper_for_pehkui.suggestion_providers.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.file.Path;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,13 @@ public class SizeHelperForPehkui implements ModInitializer {
 	// 20 seconds per tick, so 40 ticks is 2 seconds.
 	private int RUN_COMMAND_INTERVAL_TICKS = 40;
 	private int runCommandIntervalCounter = 0;
+
+	// Game Rule to enable Size Helper, so that it can be disabled per world, or temporarily in a world
+	public static final GameRules.Key<GameRules.BooleanRule> ENABLE_SIZE_HELPER = GameRuleRegistry.register(
+		"enableSizeHelper",
+		GameRules.Category.PLAYER,
+		GameRuleFactory.createBooleanRule(true)
+	);
 
 	// This code runs as soon as Minecraft is in a mod-load-ready state.
 	// However, some things (like resources) may still be uninitialized.
@@ -111,6 +121,9 @@ public class SizeHelperForPehkui implements ModInitializer {
 		});
 		// Register a callback that re-runs all scale commands every tick.
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (!server.getGameRules().getBoolean(SizeHelperForPehkui.ENABLE_SIZE_HELPER)) {
+				return;
+			}
 			runCommandIntervalCounter++;
 			if (runCommandIntervalCounter > RUN_COMMAND_INTERVAL_TICKS) {
 				runCommandIntervalCounter = 0;
