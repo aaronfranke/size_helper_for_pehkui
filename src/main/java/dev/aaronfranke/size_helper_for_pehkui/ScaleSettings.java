@@ -9,6 +9,7 @@ public class ScaleSettings {
 	public String playerName;
 	private static final DecimalFormat STRINGIFY = new DecimalFormat("0.######");
 	private static final double MOTION_ADJUST = 1.1;
+	private static final boolean ALLOW_APRIL_FOOLS = true;
 	// Most of the time, only height needs to be set, and the rest are calculated.
 	// The other values provide another multiplier on top of the calculated value.
 	// All numbers that don't say "meters" are multipliers compared to the default.
@@ -44,13 +45,12 @@ public class ScaleSettings {
 		final HashMap<String, Double> factors = new HashMap<>();
 		// 1.875 is the default Minecraft player height, turn it into a multiplier.
 		final double bakedHeight = bakedHeightMeters / 1.875;
-		final double height = heightMeters / 1.875;
+		final double height = getHeightMultiplier();
 		final double sqrtHeight = Math.sqrt(height);
 		final double sqrtSqrtHeight = Math.sqrt(sqrtHeight);
 		final double sqrtSqrtSqrtHeight = Math.sqrt(sqrtSqrtHeight);
 		final double invSqrtHeight = 1.0 / sqrtHeight;
 		final double invSqrtSqrtHeight = 1.0 / sqrtSqrtHeight;
-		final double invSqrtSqrtSqrtHeight = 1.0 / sqrtSqrtSqrtHeight;
 		factors.put("height", height / bakedHeight);
 		factors.put("width", height / bakedHeight);
 		factors.put("knockback", height);
@@ -138,6 +138,21 @@ public class ScaleSettings {
 				SizeHelperForPehkui.LOGGER.warn("Unknown flight type: {}. Allowed values are 'none', 'creative', and 'elytra'.", flight);
 		}
 		return commands;
+	}
+
+	private boolean isAprilFoolsUTC() {
+		if (!ALLOW_APRIL_FOOLS) {
+			return false;
+		}
+		java.time.LocalDate utcDate = java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+		return utcDate.getMonth() == java.time.Month.APRIL && utcDate.getDayOfMonth() == 1;
+	}
+
+	public double getHeightMultiplier() {
+		if (isAprilFoolsUTC()) {
+			return 1.875 / heightMeters;
+		}
+		return heightMeters / 1.875;
 	}
 
 	public String stringifyCalculatedScaleFactors() {
