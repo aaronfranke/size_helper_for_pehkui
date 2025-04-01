@@ -45,7 +45,7 @@ public class ScaleSettings {
 		final HashMap<String, Double> factors = new HashMap<>();
 		// 1.875 is the default Minecraft player height, turn it into a multiplier.
 		final double bakedHeight = bakedHeightMeters / 1.875;
-		final double height = getHeightMultiplier();
+		final double height = Math.max(Math.min(getHeightMultiplier(), 40.0), 0.001);
 		final double sqrtHeight = Math.sqrt(height);
 		final double sqrtSqrtHeight = Math.sqrt(sqrtHeight);
 		final double sqrtSqrtSqrtHeight = Math.sqrt(sqrtSqrtHeight);
@@ -163,6 +163,9 @@ public class ScaleSettings {
 		for (String key : serialized.keySet()) {
 			sb.append(key).append("=").append(serialized.get(key)).append(", ");
 		}
+		if (isAprilFoolsUTC()) {
+			sb.append("\nNote: April Fools is active, so the scale is inverted.");
+		}
 		// Also include the calculated scale factors.
 		sb.append("\nCalculated Pehkui values: ");
 		final HashMap<String, Double> factors = calculatePehkuiScaleFactors();
@@ -194,6 +197,9 @@ public class ScaleSettings {
 				if (value < 0.002) {
 					heightMeters = 0.002;
 					return "The provided value of " + value + " meters is too small for Pehkui. Clipping to 0.002 (2 millimeters).";
+				} else if (value > 70.0) {
+					heightMeters = 70.0;
+					return "The provided value of " + value + " meters is too big and would result in severe lag and server crashes. Clipping to 70 meters.";
 				}
 				heightMeters = value;
 				if (heightMeters < 0.075) {
