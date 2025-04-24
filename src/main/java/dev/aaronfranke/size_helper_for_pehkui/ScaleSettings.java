@@ -51,18 +51,20 @@ public class ScaleSettings {
 		final double sqrtSqrtSqrtHeight = Math.sqrt(sqrtSqrtHeight);
 		final double invSqrtHeight = 1.0 / sqrtHeight;
 		final double invSqrtSqrtHeight = 1.0 / sqrtSqrtHeight;
+		final double squaredFatness = fatness * fatness;
+		final double sqrtFatness = Math.sqrt(fatness);
 		factors.put("height", height / bakedHeight);
 		factors.put("width", height / bakedHeight);
 		factors.put("knockback", height);
 		factors.put("visibility", height);
 		factors.put("attack", sqrtHeight * strength);
-		factors.put("motion", MOTION_ADJUST * sqrtHeight * motion / Math.sqrt(fatness));
+		factors.put("motion", MOTION_ADJUST * sqrtHeight * motion / sqrtFatness);
 		factors.put("mining_speed", sqrtSqrtHeight);
 		factors.put("attack_speed", invSqrtHeight);
 		if (height < 1.0) {
 			// For jump and step height, for small players we need to compensate for their small size.
-			factors.put("falling", height * height * Math.sqrt(fatness) / jumping);
-			factors.put("health", stepifyHealth(sqrtHeight * fatness));
+			factors.put("falling", height * height * sqrtFatness / jumping);
+			factors.put("health", stepifyHealth(sqrtHeight * squaredFatness));
 			factors.put("jump_height", invSqrtSqrtHeight * jumping);
 			if (height < 0.25) {
 				factors.put("step_height", invSqrtSqrtHeight);
@@ -71,14 +73,14 @@ public class ScaleSettings {
 			}
 		} else {
 			// For big players we need to compensate for their reduced motion relative to their size.
-			factors.put("falling", Math.sqrt(fatness) / jumping);
-			factors.put("health", stepifyHealth(height * sqrtHeight * fatness));
+			factors.put("falling", sqrtFatness / jumping);
+			factors.put("health", stepifyHealth(height * sqrtHeight * squaredFatness));
 			factors.put("jump_height", sqrtSqrtSqrtHeight * jumping);
 			factors.put("step_height", sqrtSqrtHeight);
 		}
 		// Bigger characters have lower defense to allow their health to be drained faster,
 		// which in turn makes them eat more food. The inverse is true for smaller characters.
-		factors.put("defense", invSqrtHeight * strength / fatness);
+		factors.put("defense", invSqrtHeight * strength / squaredFatness);
 		// These values need special handling at small sizes.
 		if (height > 3.16049) {
 			factors.put("reach", height * 0.75);
@@ -99,7 +101,7 @@ public class ScaleSettings {
 		// Special handling, not auto-calculated.
 		factors.put("eye_height", eyeHeight * bakedHeight);
 		factors.put("hitbox_height", hitboxHeight * bakedHeight);
-		factors.put("hitbox_width", hitboxWidth * bakedHeight * Math.sqrt(fatness));
+		factors.put("hitbox_width", hitboxWidth * bakedHeight * sqrtFatness);
 		factors.put("third_person", thirdPersonDistance * bakedHeight);
 		return factors;
 	}
@@ -114,7 +116,7 @@ public class ScaleSettings {
 		// Not pehkui.
 		final double height = heightMeters / 1.875;
 		if (height > 1.0) {
-			final double knockbackRes = 1.0 - 1.0 / (height * strength * fatness);
+			final double knockbackRes = 1.0 - 1.0 / (height * strength * (fatness * fatness));
 			commands.add("attribute " + playerName + " minecraft:generic.knockback_resistance base set " + knockbackRes);
 		} else if (disableUnused) {
 			commands.add("attribute " + playerName + " minecraft:generic.knockback_resistance base set 0.0");
