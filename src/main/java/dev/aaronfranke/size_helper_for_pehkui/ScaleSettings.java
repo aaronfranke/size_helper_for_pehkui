@@ -80,7 +80,7 @@ public class ScaleSettings {
 		}
 		// Bigger characters have lower defense to allow their health to be drained faster,
 		// which in turn makes them eat more food. The inverse is true for smaller characters.
-		factors.put("defense", invSqrtHeight * strength / squaredFatness);
+		factors.put("defense", invSqrtHeight * strength / fatness);
 		// These values need special handling at small sizes.
 		if (height > 3.16049) {
 			factors.put("reach", height * 0.75);
