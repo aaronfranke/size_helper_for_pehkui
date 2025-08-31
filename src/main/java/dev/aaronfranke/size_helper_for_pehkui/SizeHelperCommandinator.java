@@ -3,19 +3,28 @@ package dev.aaronfranke.size_helper_for_pehkui;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.entity.LightningEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class SizeHelperCommandinator {
 	private ConfigFile configFile = new ConfigFile();
 	private final HashMap<String, ScaleSettings> allScaleSettings = new HashMap<>();
+
+	// Runs every time a player gets hit by lightning
+	public void onLightningStrike(PlayerEntity player, LightningEntity lightning) {
+		final String playerName = player.getEntityName();
+		final ScaleSettings settings = allScaleSettings.get(playerName);
+		if (settings == null) {
+			return;
+		}
+		settings.onLightningStrike(lightning.getUuid());
+	}
 
 	// Runs every frame as registered by SizeHelperForPehkui.
 	public void runSizeScalingCommands(MinecraftServer server, boolean disableUnused) {

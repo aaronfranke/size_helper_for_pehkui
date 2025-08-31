@@ -130,6 +130,8 @@ public class SizeHelperForPehkui implements ModInitializer {
 				commandinator.runSizeScalingCommands(server, false);
 			}
 		});
+		// Register a player lightning strike event
+		PlayerStruckByLightningCallback.EVENT.register(commandinator::onLightningStrike);
 		LOGGER.info("Loaded Size Helper for Pehkui by aaronfranke!");
 	}
 

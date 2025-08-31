@@ -162,7 +162,7 @@ public class ScaleSettings {
 			return;
 		}
 		// 900 seconds = 15 minutes. 15 minutes of growth from a lightning strike
-		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(30));
+		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(900));
 	}
 
 	public double getHeightMultiplier() {
