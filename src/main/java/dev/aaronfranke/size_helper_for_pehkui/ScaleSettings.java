@@ -53,29 +53,29 @@ public class ScaleSettings {
 	private HashMap<String, Double> calculatePehkuiScaleFactors() {
 		final HashMap<String, Double> factors = new HashMap<>();
 		// 1.875 is the default Minecraft player height, turn it into a multiplier.
-		final double bakedHeight = bakedHeightMeters / 1.875;
-		final double height = Math.max(Math.min(getHeightMultiplier(), 40.0), 0.001);
-		final double sqrtHeight = Math.sqrt(height);
+		final double bakedHeightScale = bakedHeightMeters / 1.875;
+		final double heightScale = Math.max(Math.min(getHeightMultiplier(), 40.0), 0.001);
+		final double sqrtHeight = Math.sqrt(heightScale);
 		final double sqrtSqrtHeight = Math.sqrt(sqrtHeight);
 		final double sqrtSqrtSqrtHeight = Math.sqrt(sqrtSqrtHeight);
 		final double invSqrtHeight = 1.0 / sqrtHeight;
 		final double invSqrtSqrtHeight = 1.0 / sqrtSqrtHeight;
 		final double squaredFatness = fatness * fatness;
 		final double sqrtFatness = Math.sqrt(fatness);
-		factors.put("height", height / bakedHeight);
-		factors.put("width", height / bakedHeight);
-		factors.put("knockback", height);
-		factors.put("visibility", height);
+		factors.put("height", heightScale / bakedHeightScale);
+		factors.put("width", heightScale / bakedHeightScale);
+		factors.put("knockback", heightScale);
+		factors.put("visibility", heightScale);
 		factors.put("attack", sqrtHeight * strength);
 		factors.put("motion", MOTION_ADJUST * sqrtHeight * motion / sqrtFatness);
 		factors.put("mining_speed", sqrtSqrtHeight);
 		factors.put("attack_speed", invSqrtHeight);
-		if (height < 1.0) {
+		if (heightScale < 1.0) {
 			// For jump and step height, for small players we need to compensate for their small size.
-			factors.put("falling", height * height * sqrtFatness / jumping);
+			factors.put("falling", heightScale * heightScale * sqrtFatness / jumping);
 			factors.put("health", stepifyHealth(sqrtHeight * squaredFatness));
 			factors.put("jump_height", invSqrtSqrtHeight * jumping);
-			if (height < 0.25) {
+			if (heightScale < 0.25) {
 				factors.put("step_height", invSqrtSqrtHeight);
 			} else {
 				factors.put("step_height", invSqrtHeight);
@@ -83,7 +83,7 @@ public class ScaleSettings {
 		} else {
 			// For big players we need to compensate for their reduced motion relative to their size.
 			factors.put("falling", sqrtFatness / jumping);
-			factors.put("health", stepifyHealth(height * sqrtHeight * squaredFatness));
+			factors.put("health", stepifyHealth(heightScale * sqrtHeight * squaredFatness));
 			factors.put("jump_height", sqrtSqrtSqrtHeight * jumping);
 			factors.put("step_height", sqrtSqrtHeight);
 		}
@@ -91,27 +91,27 @@ public class ScaleSettings {
 		// which in turn makes them eat more food. The inverse is true for smaller characters.
 		factors.put("defense", invSqrtHeight * strength / fatness);
 		// These values need special handling at small sizes.
-		if (height > 3.16049) {
-			factors.put("reach", height * 0.75);
-		} else if (height > 1.0) {
+		if (heightScale > 3.16049) {
+			factors.put("reach", heightScale * 0.75);
+		} else if (heightScale > 1.0) {
 			factors.put("reach", sqrtHeight * sqrtSqrtHeight);
 		} else {
 			// Realistically the reach should reduce at smaller sizes.
 			// However, people keep getting annoyed by poor gameplay.
 			factors.put("reach", 1.0);
 		}
-		if (height < 0.25) {
+		if (heightScale < 0.25) {
 			factors.put("view_bobbing", 0.0);
-		} else if (height < 2.0) {
+		} else if (heightScale < 2.0) {
 			factors.put("view_bobbing", sqrtHeight);
 		} else {
 			factors.put("view_bobbing", 1.41421356237);
 		}
 		// Special handling, not auto-calculated.
-		factors.put("eye_height", eyeHeight * bakedHeight);
-		factors.put("hitbox_height", hitboxHeight * bakedHeight);
-		factors.put("hitbox_width", hitboxWidth * bakedHeight * sqrtFatness);
-		factors.put("third_person", thirdPersonDistance * bakedHeight);
+		factors.put("eye_height", eyeHeight * bakedHeightScale);
+		factors.put("hitbox_height", hitboxHeight * bakedHeightScale);
+		factors.put("hitbox_width", hitboxWidth * bakedHeightScale * sqrtFatness);
+		factors.put("third_person", thirdPersonDistance * bakedHeightScale);
 		return factors;
 	}
 
