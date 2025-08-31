@@ -35,7 +35,7 @@ public class ScaleSettings {
 	// The amount that 'height' will be multiplied with upon a lightning strike.
 	private double lightningGrowthMultiplier = 1.0;
 
-	// Map that stores lightning UUID -> LightningGrowMoments, so they can be added together
+	// Map that stores lightning UUID -> LightningGrowMoments, so they can be added together.
 	private final HashMap<UUID, LightningGrowMoment> lightningGrowMoments = new HashMap<>();
 
 	// Internal calculations.
@@ -163,7 +163,7 @@ public class ScaleSettings {
 		if (lightningGrowthMultiplier == 1) {
 			return;
 		}
-		// 900 seconds = 15 minutes. 15 minutes of growth from a lightning strike
+		// 900 seconds = 15 minutes. 15 minutes of growth from a lightning strike.
 		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(900, world));
 	}
 
@@ -173,7 +173,7 @@ public class ScaleSettings {
 		final ArrayList<UUID> momentsToRemove = new ArrayList<>();
 
 		for (UUID uuid : lightningGrowMoments.keySet()) {
-			LightningGrowMoment moment = lightningGrowMoments.get(uuid);
+			final LightningGrowMoment moment = lightningGrowMoments.get(uuid);
 			if (moment.isFinished()) {
 				momentsToRemove.add(uuid);
 				continue;
@@ -183,7 +183,7 @@ public class ScaleSettings {
 		momentsToRemove.forEach(lightningGrowMoments::remove);
 
 		if (totalMomentFraction > 0.0) {
-			// Blend between 1.0 and lightningGrowthMultiplier
+			// Blend between 1.0 and lightningGrowthMultiplier.
 			final double effectiveGrowth = 1.0 + ((lightningGrowthMultiplier - 1.0) * totalMomentFraction);
 			multiplier *= effectiveGrowth;
 		}

@@ -10,7 +10,8 @@ public class LightningGrowMoment {
 
 	public LightningGrowMoment(double growDurationSeconds, World world) {
 		this.world = world;
-		this.growDurationTicks = (int) Math.max(2, Math.round(growDurationSeconds * 20)); // 20 ticks per second
+		// 20 ticks per second.
+		this.growDurationTicks = (int) Math.max(2, Math.round(growDurationSeconds * 20));
 		this.startingTick = world.getTime();
 		this.endingTick = startingTick + growDurationTicks;
 	}
