@@ -2,7 +2,9 @@
 	"required": true,
 	"package": "dev.aaronfranke.size_helper_for_pehkui.mixin",
 	"compatibilityLevel": "JAVA_17",
-	"mixins": [],
+	"mixins": [
+		"EntityMixin"
+    ],
 	"injectors": {
 		"defaultRequire": 1
 	}
