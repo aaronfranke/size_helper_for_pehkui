@@ -1,5 +1,7 @@
 package dev.aaronfranke.size_helper_for_pehkui;
 
+import net.minecraft.world.World;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -157,12 +159,12 @@ public class ScaleSettings {
 		return utcDate.getMonth() == java.time.Month.APRIL && utcDate.getDayOfMonth() == 1;
 	}
 
-	public void onLightningStrike(UUID lightningUuid) {
+	public void onLightningStrike(UUID lightningUuid, World world) {
 		if (lightningGrowthMultiplier == 1) {
 			return;
 		}
 		// 900 seconds = 15 minutes. 15 minutes of growth from a lightning strike
-		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(900));
+		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(900, world));
 	}
 
 	public double getHeightMultiplier() {
@@ -172,7 +174,7 @@ public class ScaleSettings {
 
 		for (UUID uuid : lightningGrowMoments.keySet()) {
 			LightningGrowMoment moment = lightningGrowMoments.get(uuid);
-			if (moment.getIsDone()) {
+			if (moment.isFinished()) {
 				momentsToRemove.add(uuid);
 				continue;
 			}

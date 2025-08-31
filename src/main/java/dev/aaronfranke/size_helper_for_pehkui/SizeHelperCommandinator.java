@@ -23,7 +23,7 @@ public class SizeHelperCommandinator {
 		if (settings == null) {
 			return;
 		}
-		settings.onLightningStrike(lightning.getUuid());
+		settings.onLightningStrike(lightning.getUuid(), player.getWorld());
 	}
 
 	// Runs every frame as registered by SizeHelperForPehkui.
