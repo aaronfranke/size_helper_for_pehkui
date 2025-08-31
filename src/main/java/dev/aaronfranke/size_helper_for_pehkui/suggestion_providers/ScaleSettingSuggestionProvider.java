@@ -25,6 +25,7 @@ public class ScaleSettingSuggestionProvider implements SuggestionProvider<Server
 		"hitbox_width",
 		"motion",
 		"third_person_distance",
+		"lightning_growth_multiplier",
 	};
 
 	@Override
