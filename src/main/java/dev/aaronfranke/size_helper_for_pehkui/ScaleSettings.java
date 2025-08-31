@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.UUID;
 
 public class ScaleSettings {
 	public String playerName;
@@ -28,6 +29,12 @@ public class ScaleSettings {
 	private double hitboxWidth = 1.0;
 	private double motion = 1.0;
 	private double thirdPersonDistance = 0.75;
+
+	// The amount that 'height' will be multiplied with upon a lightning strike.
+	private double lightningGrowthMultiplier = 1.0;
+
+	// Map that stores lightning UUID -> LightningGrowMoments, so they can be added together
+	private final HashMap<UUID, LightningGrowMoment> lightningGrowMoments = new HashMap<>();
 
 	// Internal calculations.
 	private double stepifyHealth(double health) {
@@ -150,11 +157,43 @@ public class ScaleSettings {
 		return utcDate.getMonth() == java.time.Month.APRIL && utcDate.getDayOfMonth() == 1;
 	}
 
-	public double getHeightMultiplier() {
-		if (isAprilFoolsUTC()) {
-			return 1.875 / heightMeters;
+	public void onLightningStrike(UUID lightningUuid) {
+		if (lightningGrowthMultiplier == 1) {
+			return;
 		}
-		return heightMeters / 1.875;
+		// 900 seconds = 15 minutes. 15 minutes of growth from a lightning strike
+		lightningGrowMoments.putIfAbsent(lightningUuid, new LightningGrowMoment(30));
+	}
+
+	public double getHeightMultiplier() {
+		double multiplier = heightMeters / 1.875;
+		double totalMomentFraction = 0.0;
+		final ArrayList<UUID> momentsToRemove = new ArrayList<>();
+
+		for (UUID uuid : lightningGrowMoments.keySet()) {
+			LightningGrowMoment moment = lightningGrowMoments.get(uuid);
+			if (moment.getIsDone()) {
+				momentsToRemove.add(uuid);
+				continue;
+			}
+			totalMomentFraction += moment.getAdjustedScaleMultiplier();
+		}
+		momentsToRemove.forEach(lightningGrowMoments::remove);
+
+		if (totalMomentFraction > 0.0) {
+			// Blend between 1.0 and lightningGrowthMultiplier
+			final double effectiveGrowth = 1.0 + ((lightningGrowthMultiplier - 1.0) * totalMomentFraction);
+			multiplier *= effectiveGrowth;
+		}
+		if (isAprilFoolsUTC()) {
+			multiplier = 1.0 / multiplier;
+		}
+		if (multiplier < 0.002 / 1.875) {
+			multiplier = 0.002 / 1.875;
+		} else if (multiplier > 70.0 / 1.875) {
+			multiplier = 70.0 / 1.875;
+		}
+		return multiplier;
 	}
 
 	public String stringifyCalculatedScaleFactors() {
@@ -243,6 +282,13 @@ public class ScaleSettings {
 			case "third_person_distance":
 				thirdPersonDistance = value;
 				break;
+			case "lightning_growth_multiplier":
+				if (value <= 0) {
+					lightningGrowthMultiplier = 1;
+					return "Warning: lightning_growth_multiplier cannot be set to a non-positive number. Clipping to 1 (disabled).";
+				}
+				lightningGrowthMultiplier = value;
+				break;
 			default:
 				SizeHelperForPehkui.LOGGER.warn("Unknown scale setting: " + setting);
 		}
@@ -287,6 +333,9 @@ public class ScaleSettings {
 		if (map.containsKey("third_person_distance")) {
 			settings.thirdPersonDistance = (double) map.get("third_person_distance");
 		}
+		if (map.containsKey("lightningGrowthMultiplier")) {
+			settings.lightningGrowthMultiplier = (double) map.get("lightningGrowthMultiplier");
+		}
 		return settings;
 	}
 
@@ -325,6 +374,9 @@ public class ScaleSettings {
 		}
 		if (thirdPersonDistance != 0.75) {
 			map.put("third_person_distance", thirdPersonDistance);
+		}
+		if (lightningGrowthMultiplier != 1.0) {
+			map.put("lightning_growth_multiplier", lightningGrowthMultiplier);
 		}
 		return map;
 	}
