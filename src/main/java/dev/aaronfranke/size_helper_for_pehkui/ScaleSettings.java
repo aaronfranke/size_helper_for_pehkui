@@ -335,8 +335,8 @@ public class ScaleSettings {
 		if (map.containsKey("third_person_distance")) {
 			settings.thirdPersonDistance = (double) map.get("third_person_distance");
 		}
-		if (map.containsKey("lightningGrowthMultiplier")) {
-			settings.lightningGrowthMultiplier = (double) map.get("lightningGrowthMultiplier");
+		if (map.containsKey("lightning_growth_multiplier")) {
+			settings.lightningGrowthMultiplier = (double) map.get("lightning_growth_multiplier");
 		}
 		return settings;
 	}
