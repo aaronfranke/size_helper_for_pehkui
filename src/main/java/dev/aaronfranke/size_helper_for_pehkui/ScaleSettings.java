@@ -38,6 +38,15 @@ public class ScaleSettings {
 	// Map that stores lightning UUID -> LightningGrowMoments, so they can be added together.
 	private final HashMap<UUID, LightningGrowMoment> lightningGrowMoments = new HashMap<>();
 
+	private static final String[] cpmScales = {
+			"attack_dmg", "attack_knockback", "attack_speed", "defense",
+			"entity", "explosion_dmg", "eye_height", "fall_damage",
+			"flight_speed", "health", "height", "hitbox_height",
+			"hitbox_width", "jump_height", "mining_speed", "mob_visibility",
+			"motion", "projectile_dmg", "reach", "step_height",
+			"third_person", "view_bobbing", "width"
+	};
+
 	// Internal calculations.
 	private double stepifyHealth(double health) {
 		if (health < 0.2) {
@@ -117,12 +126,16 @@ public class ScaleSettings {
 
 	public ArrayList<String> calculateScaleCommands(boolean disableUnused) {
 		final ArrayList<String> commands = new ArrayList<>();
+		// Get rid of CPM scaling.
+		for (String cpmScale : cpmScales) {
+			commands.add("scale reset cpm:" + cpmScale + " " + playerName);
+		}
 		// Pehkui.
 		final HashMap<String, Double> factors = calculatePehkuiScaleFactors();
 		for (String factor : factors.keySet()) {
 			commands.add("scale set pehkui:" + factor + " " + STRINGIFY.format(factors.get(factor)) + " " + playerName);
 		}
-		// Not pehkui.
+		// Not CPM or Pehkui.
 		final double height = heightMeters / 1.875;
 		if (height > 1.0) {
 			final double knockbackRes = 1.0 - 1.0 / (height * strength * (fatness * fatness));
